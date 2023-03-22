@@ -2,6 +2,9 @@
 # Heat Problem
 # =============
 
+myfunc6(x)=6
+
+
 function build_bgmodel(problem::ProblemType{:heat},n_cells)
 	Lx=1
 	Ly=1

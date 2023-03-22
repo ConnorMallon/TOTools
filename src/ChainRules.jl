@@ -279,7 +279,6 @@ struct InitialisableAffineFEStateMap{P,U <: FESpace, V <: FESpace}
 	a::Function
   l::Function
   res::Function
-	get_geo_params::Function
 	param_sp::P # params (CellData)
 	trial::U
 	test::V
@@ -474,4 +473,40 @@ function ChainRulesCore.rrule(ϕ_to_Vol::VolumeMap,ϕ)
   end
   Vol0, ϕ_to_Vol_pullback
 end
+
+struct UnstructuredVolumeMap{V<:FESpace}
+  unstructured_ϕc_to_Vol::Function
+  param_space::V
+  problem::ProblemType
+end
+
+function (ϕ_to_Vol::UnstructuredVolumeMap)(ϕ)
+  unstructured_ϕc_to_Vol=ϕ_to_Vol.unstructured_ϕc_to_Vol
+  Qf=ϕ_to_Vol.param_space
+  problem = ϕ_to_Vol.problem
+
+  ϕh = FEFunction(Qf,ϕ)
+
+  sum(unstructured_ϕc_to_Vol(ϕh,problem))
+end
+
+function ChainRulesCore.rrule(ϕ_to_Vol::UnstructuredVolumeMap,ϕ)
+  unstructured_ϕc_to_Vol=ϕ_to_Vol.unstructured_ϕc_to_Vol
+  Qf=ϕ_to_Vol.param_space
+  problem = ϕ_to_Vol.problem
+
+  ϕh = FEFunction(Qf,ϕ)
+
+  Vol0=sum(unstructured_ϕc_to_Vol(ϕh,problem))
+  
+  function ϕ_to_Vol_pullback(dVol)
+    dVoldϕ() = Gridap.FESpaces.gradient(ϕh -> unstructured_ϕc_to_Vol(ϕh,problem),ϕh)  #ReverseDiff.gradient(ϕ -> ϕc_to_Vol(ϕ,Vbg,problem),reshape(ϕ,(length(ϕ),1)))
+    dVoldϕ = -assemble_vector(dVoldϕ(),Qf)
+    dϕ = dVol*dVoldϕ
+    ( NoTangent(),dϕ )
+  end
+  Vol0, ϕ_to_Vol_pullback
+end
+
+
 
