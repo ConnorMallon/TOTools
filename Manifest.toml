@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "eebfd2cdfa865f2f68ccd2f4b84661205576f116"
+project_hash = "efeb3c0385b4fb963187cb927589bdaff8c96603"
 
 [[deps.AMD]]
 deps = ["Libdl", "LinearAlgebra", "SparseArrays", "Test"]
@@ -1485,10 +1485,10 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 version = "1.2.0"
 
 [[deps.Nonconvex]]
-deps = ["NonconvexCore", "NonconvexUtils", "Pkg", "Reexport"]
-git-tree-sha1 = "e8a69355e538863435a5c0e8da15a1ee807122d2"
+deps = ["NonconvexCore", "Pkg", "Reexport"]
+git-tree-sha1 = "79fd56afa492ed350e86f6af6266d7b79021a8b6"
 uuid = "01bcebdf-4d21-426d-b5c4-6132c1619978"
-version = "2.1.2"
+version = "1.0.2"
 
 [[deps.NonconvexCore]]
 deps = ["ChainRulesCore", "DifferentiableFlatten", "ForwardDiff", "IntervalArithmetic", "JuMP", "LinearAlgebra", "MathOptInterface", "NamedTupleTools", "OrderedCollections", "Parameters", "Random", "Reexport", "Requires", "Setfield", "SolverCore", "SparseArrays", "Zygote"]

@@ -16,8 +16,8 @@ function RunDriver(var_params)
   # Initialise parameters
   println("Prior Initialising")
   n_holes= n_holes#2#4#2#3#4
-  Vi=0.6
-  pP   = nucleate_holes(n_holes,bgmodel,Vi,Vbgϕ,problem) 
+  #Vi=0.6
+  pP   = nucleate_holes(n_holes,bgmodel,Vₘₐₓ,Vbgϕ,problem) 
   pN0,N = NetworkInit(bgmodel,nf,nd,pP,image_size)
   pN = pN0
   p0 = initialise_p(pP,pN,prior)
@@ -54,6 +54,14 @@ function RunDriver(var_params)
     ϕ  = ϕₛ₃_to_ϕ(ϕₛ₃,method)    # filtered unconstrained values (ϕᵤ) to filtered constrained values (ϕ)
     u  = ϕ_to_u(ϕ)#,bg_params)      # filtered constrained values (ϕ) to solution values (u)
     j  = u_to_j(u,ϕ)#,bg_params)    # solution values (u) to objective values (j)
+
+    Zygote.ignore() do 
+      global i+=1 
+    writevtk(get_triangulation(Vbgϕ),plotsdir("Ωd_$(i)"),cellfields = ["ϕ"=>FEFunction(Vbgϕ,ϕ),"u"=>FEFunction(Ubgu,u)])
+   
+    j
+  end
+
   end
   p_to_j(prior,method,problem) = p -> p_to_j(p,prior,method,problem)
   

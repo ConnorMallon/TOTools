@@ -33,6 +33,8 @@ using Test
 using LineSearches
 using AbstractDifferentiation
 
+using NLopt
+
 struct PriorType{Kind} end
 struct MethodType{Kind} end
 struct OptimiserType{Kind} end

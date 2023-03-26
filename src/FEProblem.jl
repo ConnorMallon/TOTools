@@ -2,9 +2,6 @@
 # Heat Problem
 # =============
 
-myfunc6(x)=6
-
-
 function build_bgmodel(problem::ProblemType{:heat},n_cells)
 	Lx=1
 	Ly=1
@@ -78,11 +75,13 @@ function get_FE_forms(problem::ProblemType{:heat_simp},Q,α₂)
 	degree = 2*order
 	dΩ_bg = Measure(Ω_bg,degree)
 
+
 	power(ϕ) = ϕ^3
+	k(ϕ) = α₂ +  (1-α₂) * ( power ∘ (ϕ) )
 
 	function a( u,v,ϕ)
 		ϕₕ = ϕ_to_ϕₕ(ϕ)
-		∫( α₂ +  (1-α₂) * ( power ∘ (ϕₕ) ) * ∇(v)⋅∇(u) )dΩ_bg
+		∫(  k(ϕₕ) * ∇(v)⋅∇(u) )dΩ_bg
 	end
 
 	function l( v, ϕ )	
