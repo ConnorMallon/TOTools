@@ -70,5 +70,7 @@ export VolumeMap
 export ϕc_to_Vol
 export execute_optimisation
 export UnstructuredVolumeMap
+export LinearFilter
+export apply_filter
 
 end # module TOTools

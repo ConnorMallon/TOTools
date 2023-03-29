@@ -6,6 +6,8 @@ function RunDriver(var_params)
   method = MethodType{Symbol(methodName)}()
   optimiser = OptimiserType{Symbol(optimiserName)}()
   problem = ProblemType{Symbol(problemName)}()
+
+
   
   # Background model 
   bgmodel = build_bgmodel(problem,n_cells)
@@ -47,6 +49,8 @@ function RunDriver(var_params)
 
   ϕ_to_Vol = VolumeMap(ϕc_to_Vol,Vbgϕ,problem)
 
+
+
   function p_to_j(p,prior,method,problem)
     ϕₙ₁  = p_to_ϕₙ₁(p,prior)      # parameters (p) to unfiltered unconstrained nodal values (s)
     ϕᵧ₂ = ϕₙ₁_to_ϕᵧ₂(ϕₙ₁)     # unfiltered unconstrained nodal values (s) to filtered unconstrained values (ϕᵤ)     
@@ -55,14 +59,19 @@ function RunDriver(var_params)
     u  = ϕ_to_u(ϕ)#,bg_params)      # filtered constrained values (ϕ) to solution values (u)
     j  = u_to_j(u,ϕ)#,bg_params)    # solution values (u) to objective values (j)
 
+    # #=
     Zygote.ignore() do 
       global i+=1 
     writevtk(get_triangulation(Vbgϕ),plotsdir("Ωd_$(i)"),cellfields = ["ϕ"=>FEFunction(Vbgϕ,ϕ),"u"=>FEFunction(Ubgu,u)])
-   
+    end
+    # =#
+
     j
   end
 
-  end
+
+
+  
   p_to_j(prior,method,problem) = p -> p_to_j(p,prior,method,problem)
   
   function p_to_Vol(p,prior,method,problem)
@@ -72,6 +81,8 @@ function RunDriver(var_params)
     ϕ  = ϕₛ₃_to_ϕ(ϕₛ₃,method)    # filtered unconstrained values (ϕᵤ) to filtered constrained values (ϕ)
     Vol = ϕ_to_Vol(ϕ)
   end
+
+
 
   function Vol_constr_ub(p,prior,method,problem,Vₘₐₓ) 
     ub = p_to_Vol(p,prior,method,problem) - Vₘₐₓ
@@ -86,6 +97,9 @@ function RunDriver(var_params)
   # Optimise Topology 
   println("Optimising Topology")
   iterations = 3000
+
+
+  @show prior
   optimisation_results = execute_optimisation(p_to_j(prior,method,problem),Vol_constr_ub(prior,method,problem,Vₘₐₓ),Vol_constr_lb(prior,method,problem,Vₘᵢₙ) ,copy(p0),iterations,optimiser,problem)
   fcalls,gcalls,iters,jf,pf,js,ts = optimisation_results
   Ω0=""

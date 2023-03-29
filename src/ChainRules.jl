@@ -14,6 +14,16 @@ function Adjoint(ϕ,u,du,op,res,Q)#,solver)
   dϕ = -assemble_vector(dϕ(),Q)
 end
 
+function AdjointAffine(ϕ,u,du,op,a,Q)#,solver)
+  A = Gridap.jacobian(op,u) # = dr/du
+  Aᵀ = adjoint(A) 
+  V = op.test
+  λₕ = FEFunction(V,Aᵀ\du)#,solver)
+  ϕh = FEFunction(Q,ϕ)
+  dϕ() = Gridap.FESpaces.gradient(ϕh -> res(u,λₕ,ϕh,Q),ϕh)
+  dϕ = -assemble_vector(dϕ(),Q)
+end
+
 # ================
 # ================
 # CHAIN RULES MAIN 
@@ -37,7 +47,6 @@ function (u_to_j::LossFunction)(u,ϕ)
   Q=u_to_j.param_sp
   uₕ=FEFunction(U,u)
   ϕₕ=FEFunction(Q,ϕ)
-  @show loss(uₕ,ϕₕ)
   sum(loss(uₕ,ϕₕ))
 end
 
@@ -477,31 +486,28 @@ end
 struct UnstructuredVolumeMap{V<:FESpace}
   unstructured_ϕc_to_Vol::Function
   param_space::V
-  problem::ProblemType
 end
 
 function (ϕ_to_Vol::UnstructuredVolumeMap)(ϕ)
   unstructured_ϕc_to_Vol=ϕ_to_Vol.unstructured_ϕc_to_Vol
   Qf=ϕ_to_Vol.param_space
-  problem = ϕ_to_Vol.problem
 
   ϕh = FEFunction(Qf,ϕ)
 
-  sum(unstructured_ϕc_to_Vol(ϕh,problem))
+  sum(unstructured_ϕc_to_Vol(ϕh))
 end
 
 function ChainRulesCore.rrule(ϕ_to_Vol::UnstructuredVolumeMap,ϕ)
   unstructured_ϕc_to_Vol=ϕ_to_Vol.unstructured_ϕc_to_Vol
   Qf=ϕ_to_Vol.param_space
-  problem = ϕ_to_Vol.problem
 
   ϕh = FEFunction(Qf,ϕ)
 
-  Vol0=sum(unstructured_ϕc_to_Vol(ϕh,problem))
+  Vol0=sum(unstructured_ϕc_to_Vol(ϕh))
   
   function ϕ_to_Vol_pullback(dVol)
-    dVoldϕ() = Gridap.FESpaces.gradient(ϕh -> unstructured_ϕc_to_Vol(ϕh,problem),ϕh)  #ReverseDiff.gradient(ϕ -> ϕc_to_Vol(ϕ,Vbg,problem),reshape(ϕ,(length(ϕ),1)))
-    dVoldϕ = -assemble_vector(dVoldϕ(),Qf)
+    dVoldϕ() = Gridap.FESpaces.gradient(ϕh -> unstructured_ϕc_to_Vol(ϕh),ϕh)  #ReverseDiff.gradient(ϕ -> ϕc_to_Vol(ϕ,Vbg,problem),reshape(ϕ,(length(ϕ),1)))
+    dVoldϕ = assemble_vector(dVoldϕ(),Qf)
     dϕ = dVol*dVoldϕ
     ( NoTangent(),dϕ )
   end

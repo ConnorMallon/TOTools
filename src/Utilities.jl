@@ -24,10 +24,10 @@ function ϕc_to_Vol(lvl_set_m,Vbg,problem::ProblemType{:heat_simp})
 	ϕ = collect1d(lvl_set_m) # works for simp aswell
 	Vol = Statistics.mean(ϕ)
 	# convert volume fraction to actual volume 
-	bgmodel = Vbg.fe_basis.trian.model
-	cd = get_cartesian_descriptor(bgmodel)
-	Lx = cd.sizes[1]*cd.partition[1]
-	Ly = cd.sizes[2]*cd.partition[2]     
+	#bgmodel = Vbg.fe_basis.trian.model
+	#cd = get_cartesian_descriptor(bgmodel)
+	#Lx = cd.sizes[1]*cd.partition[1]
+	#Ly = cd.sizes[2]*cd.partition[2]     
 	Vol 
 end
 

@@ -1,7 +1,7 @@
 # #=
 function execute_optimisation(optim_function,Vol_constr_ub,Vol_constr_lb,p00,iterations,optimiser::OptimiserType{:MMA},problem)
   opt = NLoptAlg(:LD_MMA)
-  options = NLoptOptions(xtol_rel=-1,ftol_rel=-1,xtol_abs=-1,ftol_abs=-1,maxeval=1000)
+  options = NLoptOptions(xtol_rel=-1,ftol_rel=-1,xtol_abs=-1,ftol_abs=-1,maxeval=iterations)
   execute_with_nonconvex(optim_function,Vol_constr_ub,Vol_constr_lb,p00,iterations,opt,options,problem)
 end
 
