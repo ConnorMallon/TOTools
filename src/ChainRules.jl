@@ -329,6 +329,59 @@ function ChainRulesCore.rrule(ϕᵧ₂_to_ϕₛ₃::InitialisableAffineFEStateMa
   ϕₛ₃.free_values, ϕᵧ₂_to_ϕₛ₃_pullback
 end
 
+
+# =============================================================================================================================================================================================
+# An extra Affine InitialisableFEStateMap that can utilise autodiff but has to use a hack for the part of res not dep on u for the moment
+# =============================================================================================================================================================================================
+
+struct InitialisableAutoFEStateMap{P,U <: FESpace, V <: FESpace}
+  res::Function
+  res_ϕ::Function
+	param_sp::P # params (CellData)
+	trial::U
+	test::V
+  u0::Array{Float64}
+	# assem::Assembler
+end
+
+function (ϕᵧ₂_to_ϕₛ₃::InitialisableAutoFEStateMap)(ϕ)
+  res=ϕᵧ₂_to_ϕₛ₃.res
+  res_ϕ=ϕᵧ₂_to_ϕₛ₃.res_ϕ
+  Q=ϕᵧ₂_to_ϕₛ₃.param_sp
+  U=ϕᵧ₂_to_ϕₛ₃.trial
+  V=ϕᵧ₂_to_ϕₛ₃.test
+  u0 = ϕᵧ₂_to_ϕₛ₃.u0
+  op = FEOperator(res(ϕ),U,V)
+  #ls = LUSolver()
+  nls = NLSolver(
+          show_trace=true, method=:newton, linesearch=BackTracking(), ftol=1e-9, iterations= 50 )
+  solver = FESolver(nls)
+  ϕₛ₃0h = FEFunction(V,copy(u0))
+  ϕₛ₃,_ = Gridap.solve!(ϕₛ₃0h,nls,op)
+  ϕₛ₃.free_values
+end
+
+function ChainRulesCore.rrule(ϕᵧ₂_to_ϕₛ₃::InitialisableAutoFEStateMap,ϕ)
+  res=ϕᵧ₂_to_ϕₛ₃.res
+  res_ϕ=ϕᵧ₂_to_ϕₛ₃.res_ϕ
+  Q=ϕᵧ₂_to_ϕₛ₃.param_sp
+  U=ϕᵧ₂_to_ϕₛ₃.trial
+  V=ϕᵧ₂_to_ϕₛ₃.test
+  u0 = ϕᵧ₂_to_ϕₛ₃.u0
+  op = FEOperator(res(ϕ),U,V)
+  #ls = LUSolver()
+  nls = NLSolver(
+          show_trace=true, method=:newton, linesearch=BackTracking(), ftol=1e-9, iterations= 50 )
+  solver = FESolver(nls)
+  ϕh = FEFunction(V,copy(u0))
+  ϕₛ₃,_ = Gridap.solve!(ϕh,nls,op)
+  function ϕᵧ₂_to_ϕₛ₃_pullback(dϕₛ₃)
+    dϕᵧ₂ = Adjoint(ϕ,ϕₛ₃,dϕₛ₃,op,res_ϕ,Q)
+    (NoTangent(),dϕᵧ₂)
+  end
+  ϕₛ₃.free_values, ϕᵧ₂_to_ϕₛ₃_pullback
+end
+
 # =========================================================
 # ϕₙ₁ -> ϕᵧ₂ : Smoothing the level set with a linear filter 
 # =========================================================

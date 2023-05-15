@@ -65,6 +65,7 @@ export get_FE_forms
 export get_objective_function
 export AffineFEStateMap
 export InitialisableAffineFEStateMap
+export InitialisableAutoFEStateMap
 export LossFunction
 export VolumeMap
 export ϕc_to_Vol
